@@ -10,7 +10,9 @@ module hu.ppke.itk.nagyhazi {
     requires org.kordamp.bootstrapfx.core;
     requires eu.hansolo.tilesfx;
     requires com.almasb.fxgl.all;
+    requires java.sql;
 
     opens hu.ppke.itk.nagyhazi to javafx.fxml;
-    exports hu.ppke.itk.nagyhazi;
+    exports hu.ppke.itk.tonyo.backend;
+    exports hu.ppke.itk.tonyo.frontend;
 }
