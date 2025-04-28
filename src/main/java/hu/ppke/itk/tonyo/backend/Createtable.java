@@ -2,17 +2,13 @@ package hu.ppke.itk.tonyo.backend;
 
 import java.sql.*;
 
-public class Createtable implements Runnable {
-    private final String dbName;
+public class Createtable {
     private final Connection connection;
 
     public Createtable(String dbname, Connection connection) {
-        this.dbName = dbname;
         this.connection = connection;
     }
-
-    @Override
-    public void run() {
+    public void createTable() {
         try (Statement stmt = connection.createStatement()) {
                 String createUsers = """
                 CREATE TABLE IF NOT EXISTS users (

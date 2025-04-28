@@ -11,6 +11,7 @@ module hu.ppke.itk.nagyhazi {
     requires eu.hansolo.tilesfx;
     requires com.almasb.fxgl.all;
     requires java.sql;
+    requires com.google.gson;
 
     opens hu.ppke.itk.nagyhazi to javafx.fxml;
     exports hu.ppke.itk.tonyo.backend;

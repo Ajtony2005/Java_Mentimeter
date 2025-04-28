@@ -1,0 +1,18 @@
+{
+  "login": {
+    "_comment": "Error codes for the login process",
+    "0": "Success",
+    "1": "Database connection failed",
+    "2": "Login query failed",
+    "3": "Invalid username or password",
+    "4": "Unknown error"
+  },
+  "registration": {
+    "_comment": "Error codes for the registration process",
+    "0": "Success",
+    "1": "Database connection failed",
+    "2": "Registration query failed",
+    "3": "Username already exists",
+    "4": "Unknown error"
+  }
+}
