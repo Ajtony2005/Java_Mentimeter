@@ -1,86 +1,63 @@
 package hu.ppke.itk.tonyo.frontend;
 
-import com.google.gson.Gson;
 import javafx.application.Application;
-import javafx.geometry.Insets;
 import javafx.scene.Scene;
-import javafx.scene.control.*;
-import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
-
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.net.Socket;
-import java.util.HashMap;
-import java.util.Map;
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
 
 public class cliens extends Application {
 
-    private static final String SERVER_HOST = "localhost";
-    private static final int SERVER_PORT = 42069;
-
-    private final Gson gson = new Gson();
+    private Scene homeScene;
+    private Scene loginScene;
+    private Scene registerScene;
 
     @Override
     public void start(Stage primaryStage) {
-        TextField usernameField = new TextField();
-        usernameField.setPromptText("Felhasználónév");
+        HomePage homePage = new HomePage(primaryStage);
+        homeScene = new Scene(homePage.getPane(), 300, 220);
 
-        PasswordField passwordField = new PasswordField();
-        passwordField.setPromptText("Jelszó");
+        LoginPage loginPage = new LoginPage(primaryStage);
+        loginScene = new Scene(loginPage.getPane(), 300, 200);
 
-        Button loginButton = new Button("Bejelentkezés");
-        Label statusLabel = new Label();
+        // Regisztrációs oldal
+        RegisterPage registerPage = new RegisterPage(primaryStage);
+        registerScene = new Scene(registerPage.getPane(), 300, 250);
 
-        loginButton.setOnAction(e -> {
-            String username = usernameField.getText().trim();
-            String password = passwordField.getText().trim();
-
-            if (username.isEmpty() || password.isEmpty()) {
-                statusLabel.setText("Töltsd ki mindkét mezőt!");
-                return;
-            }
-
-            String serverResponse = sendLogin(username, password);
-            if (serverResponse != null) {
-                // Kiírjuk a szerver válaszát a státusz mezőbe
-                statusLabel.setText("Szerver válasz: " + serverResponse);
-            } else {
-                statusLabel.setText("Hiba történt a kapcsolódáskor.");
-            }
-        });
-
-        VBox root = new VBox(10, usernameField, passwordField, loginButton, statusLabel);
-        root.setPadding(new Insets(20));
-
-        primaryStage.setScene(new Scene(root, 300, 180));
-        primaryStage.setTitle("JavaFX Socket Login JSON");
+        // Kezdő nézet: kezdőoldal
+        primaryStage.setScene(homeScene);
+        primaryStage.setTitle("Kezdőoldal");
         primaryStage.show();
-    }
 
-    private String sendLogin(String username, String password) {
-        try (Socket socket = new Socket(SERVER_HOST, SERVER_PORT);
-             PrintWriter writer = new PrintWriter(socket.getOutputStream(), true);
-             BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream()))) {
+        // Nézetváltás beállítása
+        homePage.setSwitchAction(
+                () -> {
+                    primaryStage.setScene(loginScene);
+                    primaryStage.setTitle("Bejelentkezés");
+                },
+                () -> {
+                    primaryStage.setScene(registerScene);
+                    primaryStage.setTitle("Regisztráció");
+                }
+        );
+        loginPage.setSwitchAction(
+                () -> {
+            primaryStage.setScene(registerScene);
+            primaryStage.setTitle("Regisztráció");
+        },
+                () -> {
+                    primaryStage.setScene(homeScene);
+                    primaryStage.setTitle("Kezdőoldal");
+                }
 
-            Map<String, String> loginData = new HashMap<>();
-            loginData.put("action", "login");          // kötelező az action kulcs!
-            loginData.put("username", username);
-            loginData.put("password", password);
 
-            String json = gson.toJson(loginData);
-            writer.println(json);
-
-            // Várjuk a szerver válaszát, pl: {"errorCode":0,"errorMessage":"Sikeres bejelentkezés"}
-            String responseJson = reader.readLine();
-            return responseJson;
-
-        } catch (IOException e) {
-            e.printStackTrace();
-            return null;
+        );
+        registerPage.setSwitchAction(() -> {
+            primaryStage.setScene(loginScene);
+            primaryStage.setTitle("Bejelentkezés");
+        }, () -> {
+            primaryStage.setScene(homeScene);
+            primaryStage.setTitle("Kezdőoldal");
         }
+        );
     }
 
     public static void main(String[] args) {
