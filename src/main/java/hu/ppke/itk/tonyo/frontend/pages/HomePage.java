@@ -14,12 +14,30 @@ import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 
+/**
+ * A {@code HomePage} osztály a szavazási rendszer kliensoldali JavaFX alkalmazásának főmenüjét
+ * biztosítja. Lehetővé teszi új szavazások létrehozását, meglévő szavazások listázását,
+ * szavazásokhoz való csatlakozást, saját szavazások kezelését és a felhasználó kijelentkeztetését.
+ * Kezeli a szerverről érkező üzeneteket, és megjeleníti a szavazások listáját vagy hibaüzeneteket.
+ */
 public class HomePage {
+
+    /** A felhasználói felület gyökérkonténere. */
     private final VBox view;
+
+    /** A szavazások listáját megjelenítő lista nézet. */
     private final ListView<String> pollsListView;
+
+    /** A hibaüzeneteket megjelenítő címke. */
     private final Label errorLabel;
+
+    /** A szerverrel való kommunikációt kezelő kliens objektum. */
     private final cliens Cliens;
 
+    /**
+     * Konstruktor, amely inicializálja a főmenü oldalt és a felhasználói felületet.
+     * Beállítja a kliens objektumot és az aktuális oldalt a szerverüzenetek kezelésére.
+     */
     public HomePage() {
         Cliens = App.getCliens();
         Cliens.setActivePage(this);
@@ -52,7 +70,7 @@ public class HomePage {
             System.out.println("Kijelentkezési kérés elküldve: " + request);
             ConnectPage page = new ConnectPage();
             Scene scene = new Scene(page.getView(), 400, 300);
-            // scene.getStylesheets().add(getClass().getResource("/styles.css").toExternalForm());
+            scene.getStylesheets().add(getClass().getResource("/styles.css").toExternalForm());
             App.getPrimaryStage().setTitle("Mentimeter - Kezdőoldal");
             App.getPrimaryStage().setScene(scene);
             Cliens.disconnect();
@@ -74,34 +92,51 @@ public class HomePage {
         System.out.println("HomePage konstruktor végén view gyermekek: " + view.getChildren());
     }
 
+    /**
+     * Visszaadja a felhasználói felület gyökérkonténerét.
+     *
+     * @return a felhasználói felület {@code VBox} objektuma
+     */
     public VBox getView() {
         return view;
     }
 
+    /**
+     * Megnyitja az új szavazás létrehozására szolgáló oldalt.
+     */
     private void openCreatePoll() {
         CreatePollPage page = new CreatePollPage();
         Scene scene = new Scene(page.getView(), 600, 400);
-        // scene.getStylesheets().add(getClass().getResource("/styles.css").toExternalForm());
+        scene.getStylesheets().add(getClass().getResource("/styles.css").toExternalForm());
         App.getPrimaryStage().setTitle("Mentimeter - Szavazás létrehozása");
         App.getPrimaryStage().setScene(scene);
     }
 
+    /**
+     * Megnyitja a szavazáshoz csatlakozás oldalát.
+     */
     private void openJoinPoll() {
         JoinPollPage page = new JoinPollPage();
         Scene scene = new Scene(page.getView(), 400, 200);
-        // scene.getStylesheets().add(getClass().getResource("/styles.css").toExternalForm());
+        scene.getStylesheets().add(getClass().getResource("/styles.css").toExternalForm());
         App.getPrimaryStage().setTitle("Mentimeter - Csatlakozás szavazáshoz");
         App.getPrimaryStage().setScene(scene);
     }
 
+    /**
+     * Megnyitja a saját szavazások kezelésére szolgáló oldalt.
+     */
     private void openManagePolls() {
         ManagePollPage page = new ManagePollPage();
         Scene scene = new Scene(page.getView(), 600, 400);
-        // scene.getStylesheets().add(getClass().getResource("/styles.css").toExternalForm());
+        scene.getStylesheets().add(getClass().getResource("/styles.css").toExternalForm());
         App.getPrimaryStage().setTitle("Mentimeter - Szavazások kezelése");
         App.getPrimaryStage().setScene(scene);
     }
 
+    /**
+     * Kérést küld a szervernek a felhasználó által létrehozott szavazások listázására.
+     */
     private void listPolls() {
         JsonObject request = new JsonObject();
         request.addProperty("action", "list_polls");
@@ -109,6 +144,13 @@ public class HomePage {
         System.out.println("Szavazások listázása kérés elküldve: " + request);
     }
 
+    /**
+     * Kezeli a szerverről érkező JSON üzeneteket. A {@code list_polls} akció esetén
+     * frissíti a szavazások listáját, a {@code logout} akció esetén megjeleníti
+     * a kijelentkezés eredményét.
+     *
+     * @param message a szerverről érkezett JSON üzenet
+     */
     public void handleServerMessage(JsonObject message) {
         System.out.println("HomePage: Kapott szerver válasz: " + message);
         if (message == null || !message.has("action")) {
@@ -150,6 +192,12 @@ public class HomePage {
         }
     }
 
+    /**
+     * Megjeleníti a megadott hibaüzenetet a felhasználói felületen a JavaFX
+     * alkalmazási szálon.
+     *
+     * @param message a megjelenítendő hibaüzenet
+     */
     public void showError(String message) {
         Platform.runLater(() -> {
             errorLabel.setText(message);

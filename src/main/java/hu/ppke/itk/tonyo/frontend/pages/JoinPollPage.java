@@ -13,11 +13,18 @@ import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 
+/**
+ * Ez az osztály megvalósítja a szavazáshoz való csatlakozás oldalát.
+ * A felhasználó itt tudja megadni a csatlakozási kódot és csatlakozni egy szavazáshoz.
+ */
 public class JoinPollPage {
     private final VBox view;
     private final Label errorLabel;
     private final cliens Cliens;
 
+    /**
+     * Konstruktor, amely létrehozza az oldal elemeit és beállítja az eseménykezelőket.
+     */
     public JoinPollPage() {
         Cliens = App.getCliens();
         Cliens.setActivePage(this);
@@ -61,10 +68,21 @@ public class JoinPollPage {
         view.getChildren().addAll(titleLabel, joinCodeField, joinButton, backButton, errorLabel);
     }
 
+    /**
+     * Visszaadja az oldal fő nézetét (VBox).
+     *
+     * @return a VBox nézet
+     */
     public VBox getView() {
         return view;
     }
 
+    /**
+     * Kezeli a szervertől érkező üzeneteket.
+     * Az üzenet alapján eldönti, hogy a felhasználót melyik oldalra kell továbblépni.
+     *
+     * @param message a szervertől érkezett JSON objektum
+     */
     public void handleServerMessage(JsonObject message) {
         if (message == null || !message.has("action")) {
             showError("Hibás szerver válasz: hiányzó 'action' kulcs.");
@@ -81,7 +99,7 @@ public class JoinPollPage {
                 JsonObject poll = message.get("poll").getAsJsonObject();
                 int pollId = poll.get("pollId").getAsInt();
 
-                // Ellenőrizzük, hogy a poll objektum tartalmaz-e status mezőt
+
                 String pollStatus = poll.has("status") ? poll.get("status").getAsString() : null;
 
                 if (pollStatus == null) {
@@ -111,6 +129,11 @@ public class JoinPollPage {
         }
     }
 
+    /**
+     * Hibát jelenít meg az oldalon.
+     *
+     * @param message a megjelenítendő hibaüzenet
+     */
     public void showError(String message) {
         errorLabel.setText(message);
     }

@@ -12,12 +12,22 @@ import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 
+/**
+ * Ez az osztály a szavazás elindulására való várakozó oldalt valósítja meg.
+ * A felhasználó ezen az oldalon vár, amíg a kérdező elindítja a szavazást.
+ */
 public class LoadingPage {
     private final VBox view;
     private final Label errorLabel;
     private final cliens Cliens;
     private final int pollId;
 
+    /**
+     * Létrehozza a várakozó oldalt a megadott szavazás azonosítóval és klienssel.
+     *
+     * @param pollId a szavazás azonosítója
+     * @param client a kliens példány, amely kezeli a szerverrel való kommunikációt
+     */
     public LoadingPage(int pollId, cliens client) {
         if (client == null) {
             throw new IllegalArgumentException("Client cannot be null");
@@ -45,10 +55,18 @@ public class LoadingPage {
         view.getChildren().addAll(titleLabel, messageLabel, backButton, errorLabel);
     }
 
+    /**
+     * Visszaadja az oldal grafikus felületét (VBox).
+     *
+     * @return a VBox típusú nézet
+     */
     public VBox getView() {
         return view;
     }
 
+    /**
+     * Visszaviszi a felhasználót a főmenü oldalra.
+     */
     private void goBackToMainMenu() {
         HomePage page = new HomePage();
         Scene scene = new Scene(page.getView(), 600, 400);
@@ -57,6 +75,12 @@ public class LoadingPage {
         App.getPrimaryStage().setScene(scene);
     }
 
+    /**
+     * Kezeli a szerverről érkező üzeneteket.
+     * Ha a szavazás állapota "SZAVAZAS", akkor átlép a szavazó oldalra.
+     *
+     * @param message a szervertől érkezett JSON üzenet
+     */
     public void handleServerMessage(JsonObject message) {
         if (message == null || !message.has("action")) {
             showError("Hibás szerver válasz: hiányzó 'action' kulcs.");
@@ -78,6 +102,11 @@ public class LoadingPage {
         }
     }
 
+    /**
+     * Hibát jelenít meg az oldalon.
+     *
+     * @param message a megjelenítendő hibaüzenet
+     */
     public void showError(String message) {
         errorLabel.setText(message);
     }

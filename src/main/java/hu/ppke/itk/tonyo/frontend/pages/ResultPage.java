@@ -13,11 +13,24 @@ import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
 
+/**
+ * A {@code ResultPage} osztály a szavazás eredményeit megjelenítő oldal megvalósításáért felelős.
+ * Az oldal lehetővé teszi a felhasználó számára, hogy megtekintse a szavazás eredményeit különböző típusú kérdésekhez.
+ */
+
 public class ResultPage {
+    /** A felhasználói felület gyökérkonténere. */
     private final VBox view;
+    /** A szavazás eredményeit megjelenítő pane. */
     private final Pane resultsPane;
+    /** A hibaüzeneteket megjelenítő címke. */
     private final Label errorLabel;
+    /** A szerverrel való kommunikációt kezelő kliens objektum. */
     private final cliens Cliens;
+    /**
+     * Konstruktor, amely inicializálja az eredményoldalt és a felhasználói felületet.
+     * Beállítja a kliens objektumot és az aktuális oldalt a szerverüzenetek kezelésére.
+     */
 
     public ResultPage() {
         Cliens = App.getCliens();
@@ -38,10 +51,21 @@ public class ResultPage {
 
         view.getChildren().addAll(titleLabel, resultsPane, errorLabel);
     }
+    /**
+     * Visszaadja az oldal grafikus felületét (VBox).
+     *
+     * @return a szavazás eredményeit megjelenítő oldal
+     */
 
     public VBox getView() {
         return view;
     }
+    /**
+     * Beállítja a szavazás eredményeit a megadott típus és adatok alapján.
+     *
+     * @param results a szavazás eredményei JSON formátumban
+     * @param type    a szavazás típusa (pl. "SZO_FELHO", "TOBBVALASZTOS", "SKALA")
+     */
 
     public void setResultsData(JsonObject results, String type) {
         resultsPane.getChildren().clear();
@@ -71,6 +95,12 @@ public class ResultPage {
         }
         resultsPane.getChildren().add(text);
     }
+    /**
+     * Kezeli a szerverről érkező üzeneteket.
+     * Ha a szavazás állapota "SZAVAZAS", akkor átlép a szavazó oldalra.
+     *
+     * @param message a szervertől érkezett JSON üzenet
+     */
 
     public void handleServerMessage(JsonObject message) {
         if (message == null || !message.has("event")) {
@@ -87,6 +117,11 @@ public class ResultPage {
             showError("Szavazás állapota frissült: " + newStatus);
         }
     }
+    /**
+     * Hibát jelenít meg az oldalon.
+     *
+     * @param message a megjelenítendő hibaüzenet
+     */
 
     public void showError(String message) {
         errorLabel.setText(message);

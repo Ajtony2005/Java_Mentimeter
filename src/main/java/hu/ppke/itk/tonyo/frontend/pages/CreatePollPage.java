@@ -13,15 +13,39 @@ import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 
+/**
+ * A {@code CreatePollPage} osztály egy JavaFX alapú felhasználói felületet biztosít új szavazások
+ * létrehozására a szavazási rendszer kliensoldali alkalmazásában. Lehetővé teszi a szavazás címének,
+ * kérdésének, típusának és opcióinak megadását, valamint a szerverrel való kommunikációt a szavazás
+ * létrehozásához. Kezeli a szerver válaszait és a hibajelzéseket.
+ */
 public class CreatePollPage {
+
+    /** A felhasználói felület gyökérkonténere. */
     private final VBox view;
+
+    /** A szavazás címét tartalmazó szövegmező. */
     private final TextField titleField;
+
+    /** A szavazás kérdését tartalmazó szövegmező. */
     private final TextField questionField;
+
+    /** A szavazás típusát kiválasztó legördülő menü. */
     private final ComboBox<String> typeCombo;
+
+    /** A többválasztós opciókat tartalmazó konténer. */
     private final VBox optionsBox;
+
+    /** A hibaüzeneteket megjelenítő címke. */
     private final Label errorLabel;
+
+    /** A szerverrel való kommunikációt kezelő kliens objektum. */
     private final cliens Cliens;
 
+    /**
+     * Konstruktor, amely inicializálja a szavazás létrehozási oldalt és a felhasználói felületet.
+     * Beállítja a kliens objektumot és az aktuális oldalt a szerverüzenetek kezelésére.
+     */
     public CreatePollPage() {
         Cliens = App.getCliens();
         Cliens.setActivePage(this);
@@ -62,19 +86,31 @@ public class CreatePollPage {
         view.getChildren().addAll(titleLabel, titleField, questionField, typeCombo, optionsBox, addOptionButton, createButton, backButton, errorLabel);
     }
 
+    /**
+     * Visszaadja a felhasználói felület gyökérkonténerét.
+     *
+     * @return a felhasználói felület {@code VBox} objektuma
+     */
     public VBox getView() {
         return view;
     }
 
+    /**
+     * Frissíti az opciókat tartalmazó konténert a kiválasztott szavazástípus alapján.
+     * Többválasztós típus esetén alapértelmezésként két opciómezőt ad hozzá.
+     */
     private void updateOptionsBox() {
         optionsBox.getChildren().clear();
         if (typeCombo.getValue() != null && typeCombo.getValue().equals("TOBBVALASZTOS")) {
-            // Alapértelmezett két opció hozzáadása
             addOptionField();
             addOptionField();
         }
     }
 
+    /**
+     * Új opciómezőt ad hozzá a többválasztós szavazás opcióinak konténeréhez.
+     * Az opciómező mellett egy törlés gombot is biztosít.
+     */
     private void addOptionField() {
         HBox optionRow = new HBox(10);
         TextField optionField = new TextField();
@@ -85,6 +121,10 @@ public class CreatePollPage {
         optionsBox.getChildren().add(optionRow);
     }
 
+    /**
+     * Létrehozza a szavazást a megadott adatok alapján, és elküldi a kérést a szervernek.
+     * Validálja a bevitt adatokat, és hiba esetén üzenetet jelenít meg.
+     */
     private void createPoll() {
         String title = titleField.getText().trim();
         String question = questionField.getText().trim();
@@ -131,6 +171,9 @@ public class CreatePollPage {
         Cliens.sendRequest(request);
     }
 
+    /**
+     * Visszatér a főmenübe, létrehozva egy új {@code HomePage} oldalt és beállítva azt az elsődleges ablakban.
+     */
     private void goBackToMainMenu() {
         HomePage page = new HomePage();
         Scene scene = new Scene(page.getView(), 600, 400);
@@ -139,6 +182,12 @@ public class CreatePollPage {
         App.getPrimaryStage().setScene(scene);
     }
 
+    /**
+     * Kezeli a szerverről érkező JSON üzeneteket. Ha a válasz a szavazás létrehozására vonatkozik,
+     * megjeleníti a sikeres létrehozás üzenetét vagy a hibát, és sikeres esetben visszatér a főmenübe.
+     *
+     * @param message a szerverről érkezett JSON üzenet
+     */
     public void handleServerMessage(JsonObject message) {
         if (message == null || !message.has("action")) {
             showError("Hibás szerver válasz: hiányzó 'action' kulcs.");
@@ -156,6 +205,11 @@ public class CreatePollPage {
         }
     }
 
+    /**
+     * Megjeleníti a megadott hibaüzenetet a felhasználói felületen.
+     *
+     * @param message a megjelenítendő hibaüzenet
+     */
     public void showError(String message) {
         errorLabel.setText(message);
     }

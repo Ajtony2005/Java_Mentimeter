@@ -12,13 +12,27 @@ import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 
+/**
+ * A regisztrációs oldal osztálya.
+ *
+ * Ez az osztály megjeleníti a felhasználónév és jelszó mezőket,
+ * valamint kezeli a regisztrációs folyamatot.
+ */
 public class RegisterPage {
+    /** A teljes nézet (VBox), amely tartalmazza az összes komponenst. */
     private final VBox view;
+    /** Szövegmező a felhasználónév beírásához. */
     private final TextField usernameField;
+    /** Jelszómező a jelszó beírásához. */
     private final PasswordField passwordField;
+    /** Label, amely hibaüzeneteket jelenít meg. */
     private final Label errorLabel;
+    /** A kliens objektum, amely kezeli a szerverrel való kommunikációt. */
     private final cliens Cliens;
 
+    /**
+     * Létrehozza a regisztrációs oldalt és inicializálja a nézetet.
+     */
     public RegisterPage() {
         Cliens = App.getCliens();
         Cliens.setActivePage(this);
@@ -57,10 +71,18 @@ public class RegisterPage {
 
         view.getChildren().addAll(titleLabel, usernameBox, passwordBox, buttonBox, errorLabel);
     }
+    /**
+     * Visszaadja az oldal fő nézetét, amely a JavaFX Scene-hez adható.
+     *
+     * @return a VBox típusú nézet
+     */
 
     public VBox getView() {
         return view;
     }
+    /**
+     * Regisztrációs kérés küldése a szervernek.
+     */
 
     private void register() {
         JsonObject request = new JsonObject();
@@ -69,6 +91,9 @@ public class RegisterPage {
         request.addProperty("password", passwordField.getText());
         Cliens.sendRequest(request);
     }
+    /**
+     * Visszaviszi a felhasználót a bejelentkezési oldalra.
+     */
     private void goBackToLogin() {
         LoginPage page = new LoginPage();
         Scene scene = new Scene(page.getView(), 400, 300);
@@ -76,7 +101,11 @@ public class RegisterPage {
         App.getPrimaryStage().setTitle("Mentimeter - Bejelentkezés");
         App.getPrimaryStage().setScene(scene);
     }
-
+    /**
+     * Kezeli a szerver válaszát a regisztrációs kérésre.
+     *
+     * @param message a szerver válasza JSON formátumban
+     */
     public void handleServerMessage(JsonObject message) {
         if (message == null || !message.has("action")) {
             showError("Hibás szerver válasz: hiányzó 'action' kulcs.");
@@ -97,6 +126,11 @@ public class RegisterPage {
             }
         }
     }
+    /**
+     * Hibát jelenít meg az oldalon.
+     *
+     * @param message a megjelenítendő hibaüzenet
+     */
 
     public void showError(String message) {
         errorLabel.setText(message);

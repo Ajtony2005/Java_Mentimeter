@@ -13,12 +13,26 @@ import javafx.scene.control.TextField;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
-
+/**
+ * A kezdőoldalt megvalósító osztály, ahol a felhasználó csatlakozhat egy szavazáshoz
+ * vagy létrehozhat egy új szavazást.
+ */
 public class ConnectPage {
+    /** Az oldal fő elrendezése (VBox típusú konténer). */
     private final VBox view;
+
+    /** Szövegmező, ahova a felhasználó beírja a csatlakozási kódot. */
     private final TextField joinCodeField;
+
+    /** Címke, amely a hibaüzenetek megjelenítésére szolgál. */
     private final Label errorLabel;
+
+    /** Az ügyfél (klien) objektum, amely kapcsolatot tart a szerverrel. */
     private final cliens Cliens;
+
+    /**
+     * Az oldal konstruktora. Inicializálja az összes komponenst, és beállítja az eseménykezelőket.
+     */
 
     public ConnectPage() {
         Cliens = App.getCliens();
@@ -46,13 +60,19 @@ public class ConnectPage {
         errorLabel.getStyleClass().add("error-label");
 
         view.getChildren().addAll(titleLabel, joinCodeLabel, joinCodeField, joinButton, createPollButton, errorLabel);
-        System.out.println("ConnectPage konstruktor végén view gyermekek: " + view.getChildren());
     }
-
+    /**
+     * Visszaadja az oldal fő nézetét, amely a JavaFX Scene-hez adható.
+     *
+     * @return a VBox típusú nézet
+     */
     public VBox getView() {
         return view;
     }
-
+    /**
+     * Eseménykezelő, amely akkor fut le, amikor a felhasználó a "Csatlakozás" gombra kattint.
+     * Elkészíti és elküldi a csatlakozási kérést a szerverre.
+     */
     private void joinPoll() {
         String joinCode = joinCodeField.getText().trim();
         if (joinCode.isEmpty()) {
@@ -66,7 +86,10 @@ public class ConnectPage {
         Cliens.sendRequest(request);
         System.out.println("Csatlakozási kérés elküldve: " + request);
     }
-
+    /**
+     * Eseménykezelő, amely akkor fut le, amikor a felhasználó a "Szavazás létrehozása" gombra kattint.
+     * Átirányítja a felhasználót a megfelelő oldalra.
+     */
     private void openCreatePoll() {
         int userId = Cliens.getUserId();
         System.out.println("openCreatePoll: userId = " + userId);
@@ -74,19 +97,25 @@ public class ConnectPage {
             System.out.println("Nincs bejelentkezett felhasználó, navigálás a LoginPage-re");
             LoginPage page = new LoginPage();
             Scene scene = new Scene(page.getView(), 400, 300);
-            // scene.getStylesheets().add(getClass().getResource("/styles.css").toExternalForm());
+            scene.getStylesheets().add(getClass().getResource("/styles.css").toExternalForm());
             App.getPrimaryStage().setTitle("Mentimeter - Bejelentkezés");
             App.getPrimaryStage().setScene(scene);
         } else {
             System.out.println("Bejelentkezett felhasználó, navigálás a CreatePollPage-re");
             CreatePollPage page = new CreatePollPage();
             Scene scene = new Scene(page.getView(), 600, 400);
-            // scene.getStylesheets().add(getClass().getResource("/styles.css").toExternalForm());
+            scene.getStylesheets().add(getClass().getResource("/styles.css").toExternalForm());
             App.getPrimaryStage().setTitle("Mentimeter - Szavazás létrehozása");
             App.getPrimaryStage().setScene(scene);
         }
     }
-
+    /**
+     * Kezeli a szervertől érkező válaszokat.
+     * Ha a csatlakozás sikeres, átlépteti a felhasználót a szavazási oldalra.
+     * Ha sikertelen, hibaüzenetet jelenít meg.
+     *
+     * @param message a szervertől kapott JSON üzenet
+     */
     public void handleServerMessage(JsonObject message) {
         System.out.println("ConnectPage: Kapott szerver válasz: " + message);
         if (message == null || !message.has("action")) {
@@ -101,7 +130,7 @@ public class ConnectPage {
                     int pollId = message.getAsJsonObject("poll").get("pollId").getAsInt();
                     VotePage page = new VotePage(pollId, Cliens);
                     Scene scene = new Scene(page.getView(), 600, 400);
-                    // scene.getStylesheets().add(getClass().getResource("/styles.css").toExternalForm());
+                    scene.getStylesheets().add(getClass().getResource("/styles.css").toExternalForm());
                     App.getPrimaryStage().setTitle("Mentimeter - Szavazás");
                     App.getPrimaryStage().setScene(scene);
                 } else {
@@ -111,7 +140,12 @@ public class ConnectPage {
             });
         }
     }
-
+    /**
+     * Hibaüzenet megjelenítése a felhasználónak.
+     * A megjelenítés mindig a JavaFX UI szálán történik.
+     *
+     * @param message a megjelenítendő hibaüzenet
+     */
     public void showError(String message) {
         Platform.runLater(() -> {
             errorLabel.setText(message);

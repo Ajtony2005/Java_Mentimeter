@@ -13,11 +13,31 @@ import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 
+/**
+ * A {@code ResultLoadingPage} osztály a szavazás eredményeinek betöltését megjelenítő oldal.
+ * Ez az oldal várakozik a szavazás eredményeinek megérkezésére, és lehetőséget biztosít
+ * a felhasználónak, hogy visszatérjen a kezdőoldalra.
+ */
 public class ResultLoadingPage {
+    /**
+     * A felhasználói felület gyökérkonténere.
+     */
     private final VBox view;
+    /**
+     * A hibaüzeneteket megjelenítő címke.
+     */
     private final cliens client;
+    /**
+     * A szavazás azonosítója.
+     */
     private final int pollId;
 
+    /**
+     * Konstruktor, amely inicializálja a szavazás eredményeinek betöltését megjelenítő oldalt.
+     *
+     * @param pollId a szavazás azonosítója
+     * @param client a kliens objektum, amely kezeli a szerverrel való kommunikációt
+     */
     public ResultLoadingPage(int pollId, cliens client) {
         this.pollId = pollId;
         this.client = client;
@@ -34,7 +54,7 @@ public class ResultLoadingPage {
         homeButton.setOnAction(e -> {
             HomePage page = new HomePage();
             Scene scene = new Scene(page.getView(), 600, 400);
-            // scene.getStylesheets().add(getClass().getResource("/styles.css").toExternalForm());
+            scene.getStylesheets().add(getClass().getResource("/styles.css").toExternalForm());
             App.getPrimaryStage().setTitle("Mentimeter - Kezdőoldal");
             App.getPrimaryStage().setScene(scene);
         });
@@ -42,17 +62,26 @@ public class ResultLoadingPage {
         view.getChildren().addAll(loadingLabel, homeButton);
         System.out.println("LoadingPage konstruktor végén view gyermekek: " + view.getChildren());
 
-        // Eredmények lekérése
         JsonObject request = new JsonObject();
         request.addProperty("action", "get_poll_results");
         request.addProperty("pollId", pollId);
         client.sendRequest(request);
         System.out.println("Küldött kérés: " + request);
     }
+    /**
+     * Visszaadja az oldal grafikus felületét (VBox).
+     *
+     * @return a VBox típusú nézet
+     */
 
     public VBox getView() {
         return view;
     }
+    /**
+     * Eseménykezelő, amely kezeli a szerver válaszait.
+     *
+     * @param message a szerver válasza
+     */
 
     public void handleServerMessage(JsonObject message) {
         System.out.println("LoadingPage: Kapott szerver válasz: " + message);
@@ -66,13 +95,11 @@ public class ResultLoadingPage {
             Platform.runLater(() -> {
                 System.out.println("LoadingPage: get_poll_results feldolgozás, status: " + message.get("status"));
                 if (message.has("status") && message.get("status").getAsString().equals("success")) {
-                    // Navigálás a PollResultsPage-re
                     PollResultsPage page = new PollResultsPage(pollId, client);
                     Scene scene = new Scene(page.getView(), 600, 400);
-                    // scene.getStylesheets().add(getClass().getResource("/styles.css").toExternalForm());
+                    scene.getStylesheets().add(getClass().getResource("/styles.css").toExternalForm());
                     App.getPrimaryStage().setTitle("Szavazás Eredményei");
                     App.getPrimaryStage().setScene(scene);
-                    // Továbbítjuk a szerver válaszát az új oldalnak
                     page.handleServerMessage(message);
                 } else {
                     String errorMessage = message.has("message") ? message.get("message").getAsString() : "Eredmények lekérése sikertelen.";
@@ -81,6 +108,11 @@ public class ResultLoadingPage {
             });
         }
     }
+    /**
+     * Hibát jelenít meg az oldalon.
+     *
+     * @param message a megjelenítendő hibaüzenet
+     */
 
     public void showError(String message) {
         Label errorLabel = new Label(message);

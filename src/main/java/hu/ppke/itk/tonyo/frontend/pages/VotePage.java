@@ -13,11 +13,27 @@ import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 
+/**
+ * A {@code VotePage} osztály a szavazás leadásának oldalát valósítja meg.
+ * Ez az oldal lehetővé teszi a felhasználó számára, hogy leadja a szavazatát
+ * egy adott szavazásra. Kezeli a szerver válaszait és megjeleníti a hibaüzeneteket.
+ */
+
 public class VotePage {
+    /** Az oldal fő elrendezése (VBox típusú konténer). */
     private final VBox view;
+    /** A szavazás azonosítója, amelyre a felhasználó szavazni kíván. */
     private final cliens client;
+    /** A kliens (ügyfél) objektum, amely kapcsolatot tart a szerverrel. */
     private final int pollId;
+    /** A hibaüzeneteket megjelenítő címke. */
     private final Label errorLabel;
+    /**
+     * Az oldal konstruktora. Inicializálja az összes komponenst, és beállítja az eseménykezelőket.
+     *
+     * @param pollId a szavazás azonosítója
+     * @param client a kliens példány, amely kezeli a szerverrel való kommunikációt
+     */
 
     public VotePage(int pollId, cliens client) {
         this.pollId = pollId;
@@ -55,10 +71,21 @@ public class VotePage {
         view.getChildren().addAll(titleLabel, errorLabel, voteButton);
         System.out.println("VotePage konstruktor végén view gyermekek: " + view.getChildren());
     }
+    /**
+     * Visszaadja az oldal fő nézetét, amely a JavaFX Scene-hez adható.
+     *
+     * @return a VBox típusú nézet
+     */
 
     public VBox getView() {
         return view;
     }
+    /**
+     * Kezeli a szerver válaszait. Ellenőrzi, hogy a válasz tartalmazza-e az "action" kulcsot,
+     * és ennek megfelelően kezeli a szavazás leadásának eredményét.
+     *
+     * @param message a szerver válasza JSON formátumban
+     */
 
     public void handleServerMessage(JsonObject message) {
         System.out.println("VotePage: Kapott szerver válasz: " + message);
@@ -79,6 +106,11 @@ public class VotePage {
             });
         }
     }
+    /**
+     * Hibát jelenít meg a felhasználónak. A hibaüzenet szövegét a {@code errorLabel} címkében jeleníti meg.
+     *
+     * @param message a hibaüzenet szövege
+     */
 
     public void showError(String message) {
         errorLabel.setText(message);

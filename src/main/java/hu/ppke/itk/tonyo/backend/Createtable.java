@@ -2,13 +2,42 @@ package hu.ppke.itk.tonyo.backend;
 
 import java.sql.*;
 
+/**
+ * A {@code Createtable} osztály egy SQLite adatbázis tábláinak létrehozására szolgál egy szavazási
+ * rendszer számára. Öt táblát hoz létre: {@code felhasznalok}, {@code szavazasok},
+ * {@code szavazasi_opciok}, {@code valaszok} és {@code csatlakozasi_kodok}. Az osztály a megadott
+ * {@code Connection} objektumot használja az adatbázis műveletekhez.
+ *
+ * @author [Szerző neve]
+ */
 public class Createtable {
+
+    /** Az SQLite adatbázishoz való kapcsolat. */
     private final Connection connection;
 
+    /**
+     * Konstruktor, amely inicializálja az adatbázis kapcsolatot.
+     *
+     * @param dbName az adatbázis neve (jelenleg nem használatos)
+     * @param connection az SQLite adatbázishoz való kapcsolat
+     */
     public Createtable(String dbName, Connection connection) {
         this.connection = connection;
     }
 
+    /**
+     * Létrehozza a szavazási rendszerhez szükséges táblákat az adatbázisban. A táblák csak akkor
+     * jönnek létre, ha még nem léteznek. A táblák a következőkből állnak:
+     * <ul>
+     *     <li>{@code felhasznalok}: Felhasználók adatai</li>
+     *     <li>{@code szavazasok}: Szavazások metaadatai</li>
+     *     <li>{@code szavazasi_opciok}: Szavazási opciók (válaszlehetőségek)</li>
+     *     <li>{@code valaszok}: Leadott szavazatok</li>
+     *     <li>{@code csatlakozasi_kodok}: Szavazásokhoz tartozó csatlakozási kódok</li>
+     * </ul>
+     *
+     * @throws SQLException ha a táblák létrehozása során hiba történik
+     */
     public void createTable() {
         try (Statement stmt = connection.createStatement()) {
             // Felhasználók tábla
@@ -49,7 +78,7 @@ public class Createtable {
                 );
             """;
 
-
+            // Válaszok tábla
             String createResponses = """
                 CREATE TABLE IF NOT EXISTS valaszok (
                     valasz_id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -63,6 +92,7 @@ public class Createtable {
                 );
             """;
 
+            // Csatlakozási kódok tábla
             String createJoinCodes = """
                 CREATE TABLE IF NOT EXISTS csatlakozasi_kodok (
                     csatlakozasi_kod TEXT PRIMARY KEY CHECK (length(csatlakozasi_kod) = 8),

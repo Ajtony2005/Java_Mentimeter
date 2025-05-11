@@ -14,12 +14,28 @@ import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 
+/**
+ * A {@code PollResultsPage} osztály a szavazás eredményeit megjelenítő oldalt valósítja meg.
+ * Ez az oldal a szavazás azonosítója és a kliens objektum alapján inicializálódik,
+ * és megjeleníti a szavazás eredményeit, valamint lehetőséget biztosít a felhasználónak
+ * a visszalépésre vagy a kezdőoldalra navigálásra.
+ */
 public class PollResultsPage {
+    /** A felhasználói felület gyökérkonténere. */
     private final VBox view;
+    /** A szavazás eredményeit megjelenítő címke. */
     private final Label errorLabel;
+    /** A szerverrel való kommunikációt kezelő kliens objektum. */
     private final cliens client;
+    /** A szavazás azonosítója. */
     private final int pollId;
 
+    /**
+     * Konstruktor, amely inicializálja a szavazás eredményeit megjelenítő oldalt.
+     *
+     * @param pollId a szavazás azonosítója
+     * @param client  a kliens objektum, amely kezeli a szerverrel való kommunikációt
+     */
     public PollResultsPage(int pollId, cliens client) {
         this.pollId = pollId;
         this.client = client;
@@ -39,7 +55,7 @@ public class PollResultsPage {
         backButton.setOnAction(e -> {
             ManagePollPage page = new ManagePollPage();
             Scene scene = new Scene(page.getView(), 600, 400);
-            // scene.getStylesheets().add(getClass().getResource("/styles.css").toExternalForm());
+            scene.getStylesheets().add(getClass().getResource("/styles.css").toExternalForm());
             App.getPrimaryStage().setTitle("Szavazások kezelése");
             App.getPrimaryStage().setScene(scene);
         });
@@ -48,7 +64,7 @@ public class PollResultsPage {
         homeButton.setOnAction(e -> {
             HomePage page = new HomePage();
             Scene scene = new Scene(page.getView(), 600, 400);
-            // scene.getStylesheets().add(getClass().getResource("/styles.css").toExternalForm());
+            scene.getStylesheets().add(getClass().getResource("/styles.css").toExternalForm());
             App.getPrimaryStage().setTitle("Mentimeter - Kezdőoldal");
             App.getPrimaryStage().setScene(scene);
         });
@@ -56,18 +72,27 @@ public class PollResultsPage {
         view.getChildren().addAll(titleLabel, errorLabel, backButton, homeButton);
         System.out.println("Konstruktor végén view gyermekek: " + view.getChildren());
 
-        // Eredmények lekérése
         JsonObject request = new JsonObject();
         request.addProperty("action", "get_poll_results");
         request.addProperty("pollId", pollId);
         client.sendRequest(request);
         System.out.println("Küldött kérés: " + request);
     }
+    /**
+     * Visszaadja az oldal grafikus felületét (VBox).
+     *
+     * @return a VBox típusú nézet
+     */
 
     public VBox getView() {
         return view;
     }
 
+    /**
+     * Kezeli a szerver üzeneteit, és frissíti a felhasználói felületet a válaszok alapján.
+     *
+     * @param message a szerver üzenete
+     */
     public void handleServerMessage(JsonObject message) {
         System.out.println("PollResultsPage: Kapott szerver válasz: " + message);
         if (message == null || !message.has("action")) {
@@ -143,6 +168,11 @@ public class PollResultsPage {
             });
         }
     }
+    /**
+     * Megjeleníti a megadott hibaüzenetet a felhasználói felületen.
+     *
+     * @param message a megjelenítendő hibaüzenet
+     */
 
     public void showError(String message) {
         errorLabel.setText(message);

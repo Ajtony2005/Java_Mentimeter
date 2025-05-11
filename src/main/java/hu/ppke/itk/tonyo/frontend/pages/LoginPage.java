@@ -11,15 +11,38 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
-import javafx.stage.Stage;
+
+/**
+ * A bejelentkező oldal osztálya.
+ *
+ * Ez az osztály megjeleníti a felhasználónév és jelszó mezőket,
+ * valamint kezeli a bejelentkezési és regisztrációs folyamatot.
+ */
 
 public class LoginPage {
+    /**
+     * A teljes nézet (VBox), amely tartalmazza az összes komponenst.
+     */
     private final VBox view;
+    /**
+     * Szövegmező a felhasználónév beírásához.
+     */
     private final TextField usernameField;
+    /**
+     * Jelszómező a jelszó beírásához.
+     */
     private final PasswordField passwordField;
+    /**
+     * Label, amely hibaüzeneteket jelenít meg.
+     */
     private final Label errorLabel;
+    /**
+     * A kliens objektum, amely kezeli a szerverrel való kommunikációt.
+     */
     private final cliens Cliens;
-
+    /**
+     * Létrehozza a bejelentkező oldalt és inicializálja a nézetet.
+     */
     public LoginPage() {
         Cliens = App.getCliens();
         Cliens.setActivePage(this);
@@ -58,11 +81,18 @@ public class LoginPage {
 
         view.getChildren().addAll(titleLabel, usernameBox, passwordBox, buttonBox, errorLabel);
     }
-
+    /**
+     * Visszaadja az oldal teljes nézetét, amely megjeleníthető a jelenetben.
+     *
+     * @return a VBox nézet
+     */
     public VBox getView() {
         return view;
     }
-
+    /**
+     * Kezeli a bejelentkezési gomb megnyomását.
+     * Ellenőrzi, hogy minden mező ki van-e töltve, majd küldi a szervernek a login kérést.
+     */
     private void login() {
         String username = usernameField.getText().trim();
         String password = passwordField.getText().trim();
@@ -76,7 +106,9 @@ public class LoginPage {
         request.addProperty("password", passwordField.getText());
         Cliens.sendRequest(request);
     }
-
+    /**
+     * Megnyitja a regisztrációs oldalt új oldalon.
+     */
     private void openRegister() {
         RegisterPage page = new RegisterPage();
         Scene scene = new Scene(page.getView(), 400, 300);
@@ -84,7 +116,12 @@ public class LoginPage {
         App.getPrimaryStage().setTitle("Mentimeter - Regisztráció");
         App.getPrimaryStage().setScene(scene);
     }
-
+    /**
+     * Kezeli a szervertől érkező üzeneteket.
+     * A login válaszok feldolgozása történik itt.
+     *
+     * @param message a szervertől kapott JSON objektum
+     */
     public void handleServerMessage(JsonObject message) {
         if (message == null || !message.has("action")) {
             showError("Hibás szerver válasz: hiányzó 'action' kulcs.");
@@ -106,7 +143,11 @@ public class LoginPage {
             }
         }
     }
-
+    /**
+     * Hibaüzenetet jelenít meg az oldalon.
+     *
+     * @param message a megjelenítendő hibaüzenet
+     */
     public void showError(String message) {
         errorLabel.setText(message);
     }

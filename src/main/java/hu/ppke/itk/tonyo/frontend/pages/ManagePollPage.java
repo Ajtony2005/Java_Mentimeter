@@ -14,12 +14,38 @@ import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 
+/**
+ * A szavazások kezeléséért felelős oldal osztálya.
+ *
+ * Ez az oldal lehetőséget ad a felhasználónak, hogy megtekinthesse, szerkeszthesse,
+ * állapotát módosíthassa és alaphelyzetbe állíthassa a saját szavazásait.
+ *
+ * Felhasználói felületet biztosít a szavazások listázására, részletek megtekintésére és szerkesztésére.
+ */
+
 public class ManagePollPage {
+    /**
+     * Az oldal fő konténere (felhasználói felület).
+     */
     private final VBox view;
+
+    /**
+     * A szavazásokat megjelenítő lista komponens.
+     */
     private final ListView<HBox> pollsListView;
+    /**
+     * Hibaüzenetek megjelenítésére szolgáló címke.
+     */
     private final Label errorLabel;
+    /**
+     * Az ügyfélkommunikációt kezelő kliens példány.
+     */
     private final cliens Cliens;
 
+    /**
+     * Konstruktor, amely inicializálja a szavazások kezelésére szolgáló oldalt.
+     * Beállítja a felhasználói felületet és a szükséges eseménykezelőket.
+     */
     public ManagePollPage() {
         Cliens = App.getCliens();
         Cliens.setActivePage(this);
@@ -45,20 +71,27 @@ public class ManagePollPage {
 
         view.getChildren().addAll(titleLabel, listPollsButton, pollsListView, backButton, errorLabel);
 
-        // Kezdetben listázzuk a szavazásokat
         listMyPolls();
     }
-
+    /**
+     * Visszaadja az oldal felhasználói felületét.
+     *
+     * @return a VBox típusú nézet
+     */
     public VBox getView() {
         return view;
     }
-
+    /**
+     * Megnyitja a szavazás létrehozására szolgáló oldalt.
+     */
     private void listMyPolls() {
         JsonObject request = new JsonObject();
         request.addProperty("action", "list_my_polls");
         Cliens.sendRequest(request);
     }
-
+    /**
+     * Visszaviszi a felhasználót a főmenü oldalra.
+     */
     private void goBackToMainMenu() {
         HomePage page = new HomePage();
         Scene scene = new Scene(page.getView(), 600, 400);
@@ -66,7 +99,12 @@ public class ManagePollPage {
         App.getPrimaryStage().setTitle("Mentimeter - Főmenü");
         App.getPrimaryStage().setScene(scene);
     }
-
+    /**
+     * Frissíti a szavazás állapotát a megadott azonosítóval és új állapottal.
+     *
+     * @param pollId    a szavazás azonosítója
+     * @param newStatus az új állapot
+     */
     private void updatePollStatus(int pollId, String newStatus) {
         JsonObject request = new JsonObject();
         request.addProperty("action", "update_poll_status");
@@ -74,6 +112,11 @@ public class ManagePollPage {
         request.addProperty("newStatus", newStatus);
         Cliens.sendRequest(request);
     }
+    /**
+     * Megjeleníti a hibaüzenetet a felhasználói felületen.
+     *
+     * @param message a hibaüzenet szövege
+     */
 
     private void resetPollData(int pollId) {
         JsonObject request = new JsonObject();
@@ -81,6 +124,11 @@ public class ManagePollPage {
         request.addProperty("pollId", pollId);
         Cliens.sendRequest(request);
     }
+    /**
+     * Megjeleníti a hibaüzenetet a felhasználói felületen.
+     *
+     * @param message a hibaüzenet szövege
+     */
 
     private void editPoll(int pollId, String title, String question, String type, JsonObject settings) {
         JsonObject request = new JsonObject();
@@ -92,6 +140,11 @@ public class ManagePollPage {
         request.add("settings", settings);
         Cliens.sendRequest(request);
     }
+    /**
+     * Megjeleníti a szavazás részleteit egy új ablakban.
+     *
+     * @param pollObj a szavazás adatait tartalmazó JSON objektum
+     */
 
     private void showPollDetails(JsonObject pollObj) {
         int pollId = pollObj.get("pollId").getAsInt();
@@ -149,6 +202,11 @@ public class ManagePollPage {
         App.getPrimaryStage().setTitle("Szavazás részletei");
         App.getPrimaryStage().setScene(detailsScene);
     }
+    /**
+     * Megjeleníti a szavazás szerkesztési űrlapját.
+     *
+     * @param pollObj a szavazás adatait tartalmazó JSON objektum
+     */
 
     private void showEditPollForm(JsonObject pollObj) {
         int pollId = pollObj.get("pollId").getAsInt();
@@ -268,6 +326,13 @@ public class ManagePollPage {
         App.getPrimaryStage().setScene(editScene);
     }
 
+    /**
+     * Megnyitja a szavazás kezelőfelületét egy új ablakban.
+     *
+     * @param pollId      a szavazás azonosítója
+     * @param title       a szavazás címe
+     * @param currentStatus a szavazás aktuális állapota
+     */
     private void openControlPanel(int pollId, String title, String currentStatus) {
         PollControlPage controlPage = new PollControlPage(pollId, title, currentStatus, Cliens);
         Scene scene = new Scene(controlPage.getView(), 600, 400);
@@ -275,7 +340,12 @@ public class ManagePollPage {
         App.getPrimaryStage().setTitle("Szavazás kezelőfelület");
         App.getPrimaryStage().setScene(scene);
     }
-
+    /**
+     * Kezeli a szerverről érkező üzeneteket.
+     * A válasz alapján frissíti a szavazások listáját, vagy hibaüzenetet jelenít meg.
+     *
+     * @param message a szervertől érkezett JSON üzenet
+     */
     public void handleServerMessage(JsonObject message) {
         if (message == null || !message.has("action")) {
             showError("Hibás szerver válasz: hiányzó 'action' kulcs.");
@@ -309,7 +379,7 @@ public class ManagePollPage {
                         editButton.setOnAction(e -> showEditPollForm(pollObj));
                         Button controlButton = new Button("Kezelőfelület");
                         controlButton.setOnAction(e -> openControlPanel(pollId, title, status));
-                        Button resultsButton = new Button("Eredmények megtekintése"); // Új gomb
+                        Button resultsButton = new Button("Eredmények megtekintése");
                         resultsButton.setOnAction(e -> {
                             PollResultsPage page = new PollResultsPage(pollId, Cliens);
                             Scene scene = new Scene(page.getView(), 600, 400);
@@ -357,6 +427,11 @@ public class ManagePollPage {
                 break;
         }
     }
+    /**
+     * Megjeleníti a hibaüzenetet a felhasználói felületen.
+     *
+     * @param message a hibaüzenet szövege
+     */
 
     public void showError(String message) {
         errorLabel.setText(message);
