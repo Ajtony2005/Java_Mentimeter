@@ -16,8 +16,8 @@ public class createDB {
 
         try (Connection connection = DriverManager.getConnection(url)){
             System.out.println("Opened database succesfully");
-            Createtable createTable = new Createtable(dbName, connection);
-            createTable.createTable();
+            Createtable n = new Createtable(dbName, connection);
+            n.createTable();
         } catch (SQLException e){
             System.err.println("Database connection faild:" + e.getMessage());
         }
