@@ -73,14 +73,8 @@ public class HomePage {
             scene.getStylesheets().add(getClass().getResource("/styles.css").toExternalForm());
             App.getPrimaryStage().setTitle("Mentimeter - Kezdőoldal");
             App.getPrimaryStage().setScene(scene);
-            Cliens.disconnect();
-            try {
-                Cliens.connect("localhost", 42069);
-                System.out.println("Újracsatlakozás sikeres");
-            } catch (Exception ex) {
-                showError("Újracsatlakozás sikertelen: " + ex.getMessage());
-            }
-        });
+            Cliens.setUserId(-1); //Javított
+           });
 
         pollsListView = new ListView<>();
         pollsListView.setItems(FXCollections.observableArrayList());

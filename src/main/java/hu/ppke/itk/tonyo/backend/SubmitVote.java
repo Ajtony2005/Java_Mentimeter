@@ -52,68 +52,80 @@ public class SubmitVote implements Callable<JsonObject> {
 
         String url = "jdbc:sqlite:" + dbName;
         try (Connection conn = DriverManager.getConnection(url)) {
-            String sql = "SELECT allapot, beallitasok FROM szavazasok WHERE szavazas_id = ?";
-            try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
-                pstmt.setInt(1, pollId);
-                try (ResultSet rs = pstmt.executeQuery()) {
-                    if (!rs.next()) {
-                        response.addProperty("status", "error");
-                        response.addProperty("message", "Érvénytelen szavazás azonosító.");
-                        return response;
-                    }
-
-                    String pollStatus = rs.getString("allapot");
-                    if (!pollStatus.equals("SZAVAZAS")) {
-                        response.addProperty("status", "error");
-                        response.addProperty("message", "A szavazás nem aktív szavazási fázisban van.");
-                        return response;
-                    }
-
-                    String settingsJson = rs.getString("beallitasok");
-                    if (settingsJson == null || settingsJson.isEmpty()) {
-                        response.addProperty("status", "error");
-                        response.addProperty("message", "A szavazás beállításai hiányoznak.");
-                        return response;
-                    }
-
-                    JsonObject settings = gson.fromJson(settingsJson, JsonObject.class);
-                    if (!settings.has("options")) {
-                        response.addProperty("status", "error");
-                        response.addProperty("message", "A szavazás nem tartalmaz opciókat.");
-                        return response;
-                    }
-
-                    JsonArray options = settings.getAsJsonArray("options");
-                    boolean validOption = false;
-                    for (int i = 0; i < options.size(); i++) {
-                        JsonObject option = options.get(i).getAsJsonObject();
-                        if (option.get("id").getAsInt() == optionId) {
-                            validOption = true;
-                            break;
-                        }
-                    }
-
-                    if (!validOption) {
-                        response.addProperty("status", "error");
-                        response.addProperty("message", "Érvénytelen opció azonosító.");
-                        return response;
-                    }
-
-                    String insertSql = "INSERT INTO valaszok (szavazas_id, opcio_id) VALUES (?, ?)";
-                    try (PreparedStatement insertPstmt = conn.prepareStatement(insertSql)) {
-                        insertPstmt.setInt(1, pollId);
-                        insertPstmt.setInt(2, optionId);
-                        int rowsAffected = insertPstmt.executeUpdate();
-                        if (rowsAffected > 0) {
-                            response.addProperty("status", "success");
-                            response.addProperty("message", "Szavazat sikeresen leadva!");
-                        } else {
+            conn.setAutoCommit(false);
+            try {
+                String sql = "SELECT allapot, beallitasok FROM szavazasok WHERE szavazas_id = ?";
+                try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+                    pstmt.setInt(1, pollId);
+                    try (ResultSet rs = pstmt.executeQuery()) {
+                        if (!rs.next()) {
                             response.addProperty("status", "error");
-                            response.addProperty("message", "Szavazat rögzítése sikertelen.");
+                            response.addProperty("message", "Érvénytelen szavazás azonosító.");
+                            return response;
+                        }
+
+                        String pollStatus = rs.getString("allapot");
+                        if (!pollStatus.equals("SZAVAZAS")) {
+                            response.addProperty("status", "error");
+                            response.addProperty("message", "A szavazás nem aktív szavazási fázisban van.");
+                            return response;
+                        }
+
+                        String settingsJson = rs.getString("beallitasok");
+                        if (settingsJson == null || settingsJson.isEmpty()) {
+                            response.addProperty("status", "error");
+                            response.addProperty("message", "A szavazás beállításai hiányoznak.");
+                            return response;
+                        }
+
+                        JsonObject settings = gson.fromJson(settingsJson, JsonObject.class);
+                        if (!settings.has("options")) {
+                            response.addProperty("status", "error");
+                            response.addProperty("message", "A szavazás nem tartalmaz opciókat.");
+                            return response;
+                        }
+
+                        JsonArray options = settings.getAsJsonArray("options");
+                        boolean validOption = false;
+                        for (int i = 0; i < options.size(); i++) {
+                            JsonObject option = options.get(i).getAsJsonObject();
+                            if (option.get("id").getAsInt() == optionId) {
+                                validOption = true;
+                                break;
+                            }
+                        }
+
+                        if (!validOption) {
+                            response.addProperty("status", "error");
+                            response.addProperty("message", "Érvénytelen opció azonosító.");
+                            return response;
+                        }
+
+                        String insertSql = "INSERT INTO valaszok (szavazas_id, opcio_id) VALUES (?, ?)";
+                        try (PreparedStatement insertPstmt = conn.prepareStatement(insertSql)) {
+                            insertPstmt.setInt(1, pollId);
+                            insertPstmt.setInt(2, optionId);
+                            int rowsAffected = insertPstmt.executeUpdate();
+                            if (rowsAffected > 0) {
+                                response.addProperty("status", "success");
+                                response.addProperty("message", "Szavazat sikeresen leadva!");
+                            } else {
+                                response.addProperty("status", "error");
+                                response.addProperty("message", "Szavazat rögzítése sikertelen.");
+                            }
                         }
                     }
                 }
+                conn.commit();
+            }catch (SQLException e){
+                conn.rollback();
+                response.addProperty("status", "error");
+                response.addProperty("message", "Szavazat leadása sikertelen: " + e.getMessage());
+
+            } finally{
+                conn.setAutoCommit(true);
             }
+
         } catch (SQLException e) {
             response.addProperty("status", "error");
             response.addProperty("message", "Szavazat leadása sikertelen: " + e.getMessage());

@@ -7,8 +7,6 @@ import java.sql.*;
  * rendszer számára. Öt táblát hoz létre: {@code felhasznalok}, {@code szavazasok},
  * {@code szavazasi_opciok}, {@code valaszok} és {@code csatlakozasi_kodok}. Az osztály a megadott
  * {@code Connection} objektumot használja az adatbázis műveletekhez.
- *
- * @author [Szerző neve]
  */
 public class Createtable {
 

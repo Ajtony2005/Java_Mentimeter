@@ -27,7 +27,7 @@ public class ConnectPage {
     /** Címke, amely a hibaüzenetek megjelenítésére szolgál. */
     private final Label errorLabel;
 
-    /** Az ügyfél (klien) objektum, amely kapcsolatot tart a szerverrel. */
+    /** Az ügyfél (kliens) objektum, amely kapcsolatot tart a szerverrel. */
     private final cliens Cliens;
 
     /**

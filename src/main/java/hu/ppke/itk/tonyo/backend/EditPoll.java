@@ -57,37 +57,54 @@ public class EditPoll implements Callable<JsonObject> {
 
         String url = "jdbc:sqlite:" + dbName;
         try (Connection conn = DriverManager.getConnection(url)) {
-            String checkSql = "SELECT felhasznalo_id FROM szavazasok WHERE szavazas_id = ?";
-            try (PreparedStatement checkStmt = conn.prepareStatement(checkSql)) {
-                checkStmt.setInt(1, pollId);
-                try (ResultSet rs = checkStmt.executeQuery()) {
-                    if (rs.next() && rs.getInt("felhasznalo_id") != clientHandler.getUserId()) {
+            // Tranzakció kezdete
+            conn.setAutoCommit(false);
+
+            try {
+                // Jogosultság ellenőrzése
+                String checkSql = "SELECT felhasznalo_id FROM szavazasok WHERE szavazas_id = ?";
+                try (PreparedStatement checkStmt = conn.prepareStatement(checkSql)) {
+                    checkStmt.setInt(1, pollId);
+                    try (ResultSet rs = checkStmt.executeQuery()) {
+                        if (rs.next() && rs.getInt("felhasznalo_id") != clientHandler.getUserId()) {
+                            response.addProperty("status", "error");
+                            response.addProperty("message", "Nincs jogosultság a szavazás szerkesztéséhez");
+                            conn.rollback();
+                            return response;
+                        }
+                    }
+                }
+
+                // Szavazás szerkesztése
+                String sql = "UPDATE szavazasok SET cim = ?, kerdes = ?, tipus = ?, beallitasok = ? WHERE szavazas_id = ?";
+                try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+                    pstmt.setString(1, title);
+                    pstmt.setString(2, question);
+                    pstmt.setString(3, type);
+                    pstmt.setString(4, settingsJson);
+                    pstmt.setInt(5, pollId);
+                    int rowsAffected = pstmt.executeUpdate();
+                    if (rowsAffected > 0) {
+                        response.addProperty("status", "success");
+                        response.addProperty("message", "Szavazás sikeresen szerkesztve");
+                    } else {
                         response.addProperty("status", "error");
-                        response.addProperty("message", "Nincs jogosultság a szavazás szerkesztéséhez");
+                        response.addProperty("message", "Érvénytelen szavazás azonosító");
+                        conn.rollback();
                         return response;
                     }
                 }
-            }
-
-            String sql = "UPDATE szavazasok SET cim = ?, kerdes = ?, tipus = ?, beallitasok = ? WHERE szavazas_id = ?";
-            try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
-                pstmt.setString(1, title);
-                pstmt.setString(2, question);
-                pstmt.setString(3, type);
-                pstmt.setString(4, settingsJson);
-                pstmt.setInt(5, pollId);
-                int rowsAffected = pstmt.executeUpdate();
-                if (rowsAffected > 0) {
-                    response.addProperty("status", "success");
-                    response.addProperty("message", "Szavazás sikeresen szerkesztve");
-                } else {
-                    response.addProperty("status", "error");
-                    response.addProperty("message", "Érvénytelen szavazás azonosító");
-                }
+                conn.commit();
+            } catch (SQLException e) {
+                conn.rollback();
+                response.addProperty("status", "error");
+                response.addProperty("message", "Szavazás szerkesztése sikertelen: " + e.getMessage());
+            } finally {
+                conn.setAutoCommit(true);
             }
         } catch (SQLException e) {
             response.addProperty("status", "error");
-            response.addProperty("message", "Szavazás szerkesztése sikertelen: " + e.getMessage());
+            response.addProperty("message", "Adatbázis kapcsolat sikertelen: " + e.getMessage());
         }
         return response;
     }

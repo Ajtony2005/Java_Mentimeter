@@ -13,8 +13,6 @@ import java.util.concurrent.CopyOnWriteArrayList;
  * Minden kliens külön szálon fut, és a szerverrel TCP kapcsolaton keresztül kommunikál. Az osztály
  * felelős a klienssel való kommunikációért, a szavazásokhoz való csatlakozásért és kilépésért,
  * valamint az üzenetek továbbításáért a szavazásokhoz csatlakozott klienseknek.
- *
- * @author [Szerző neve]
  */
 public class ClientHandler implements Runnable {
 

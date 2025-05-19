@@ -51,12 +51,22 @@ public class ResetPollData implements Callable<JsonObject> {
         int pollId = request.get("pollId").getAsInt();
         String url = "jdbc:sqlite:" + dbName;
         try (Connection conn = DriverManager.getConnection(url)) {
-            String sql = "DELETE FROM valaszok WHERE szavazas_id = ?";
-            try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
-                pstmt.setInt(1, pollId);
-                int rowsAffected = pstmt.executeUpdate();
-                response.addProperty("status", "success");
-                response.addProperty("message", "Szavazás adatai resetelve, törölt sorok: " + rowsAffected);
+            conn.setAutoCommit(false);
+            try {
+                String sql = "DELETE FROM valaszok WHERE szavazas_id = ?";
+                try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+                    pstmt.setInt(1, pollId);
+                    int rowsAffected = pstmt.executeUpdate();
+                    response.addProperty("status", "success");
+                    response.addProperty("message", "Szavazás adatai resetelve, törölt sorok: " + rowsAffected);
+                }
+                conn.commit();
+            } catch (SQLException e){
+                conn.rollback();
+                response.addProperty("status", "error");
+                response.addProperty("message", "Adatok resetelése sikertelen: " + e.getMessage());
+            } finally {
+                conn.setAutoCommit(true);
             }
         } catch (SQLException e) {
             response.addProperty("status", "error");

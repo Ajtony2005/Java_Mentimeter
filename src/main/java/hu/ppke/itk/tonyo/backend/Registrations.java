@@ -12,8 +12,6 @@ import java.util.concurrent.Callable;
 /**
  * A {@code Register} osztály egy új felhasználó regisztrálására szolgál egy SQLite adatbázisban.
  * A {@code Callable} interfészt implementálja, így szálbiztos környezetben futtatható.
- *
- * @author [Szerző neve]
  */
 public class Registrations implements Callable<JsonObject> {
 
@@ -46,28 +44,38 @@ public class Registrations implements Callable<JsonObject> {
 
         String url = "jdbc:sqlite:" + dbName;
         try (Connection conn = DriverManager.getConnection(url)) {
-            String checkSql = "SELECT COUNT(*) FROM felhasznalok WHERE felhasznalonev = ?";
-            try (PreparedStatement checkStmt = conn.prepareStatement(checkSql)) {
-                checkStmt.setString(1, username);
-                ResultSet rs = checkStmt.executeQuery();
-                if (rs.next() && rs.getInt(1) > 0) {
-                    response.addProperty("status", "error");
-                    response.addProperty("message", "A felhasználónév már foglalt");
-                    return response;
+            conn.setAutoCommit(false);
+            try {
+                String checkSql = "SELECT COUNT(*) FROM felhasznalok WHERE felhasznalonev = ?";
+                try (PreparedStatement checkStmt = conn.prepareStatement(checkSql)) {
+                    checkStmt.setString(1, username);
+                    ResultSet rs = checkStmt.executeQuery();
+                    if (rs.next() && rs.getInt(1) > 0) {
+                        response.addProperty("status", "error");
+                        response.addProperty("message", "A felhasználónév már foglalt");
+                        return response;
+                    }
                 }
-            }
 
-            String sql = "INSERT INTO felhasznalok (felhasznalonev, jelszo) VALUES (?, ?)";
-            try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
-                pstmt.setString(1, username);
-                pstmt.setString(2, password);
-                pstmt.executeUpdate();
-                response.addProperty("status", "success");
-                response.addProperty("message", "Sikeres regisztráció");
+                String sql = "INSERT INTO felhasznalok (felhasznalonev, jelszo) VALUES (?, ?)";
+                try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+                    pstmt.setString(1, username);
+                    pstmt.setString(2, password);
+                    pstmt.executeUpdate();
+                    response.addProperty("status", "success");
+                    response.addProperty("message", "Sikeres regisztráció");
+                }
+                conn.commit();
+            } catch (SQLException e) {
+                conn.rollback();
+                response.addProperty("status", "error");
+                response.addProperty("message", "Regisztrációs hiba: " + e.getMessage());
+            } finally {
+                conn.setAutoCommit(true);
             }
         } catch (SQLException e) {
             response.addProperty("status", "error");
-            response.addProperty("message", "Regisztrációs hiba: " + e.getMessage());
+            response.addProperty("message", "Adatbázis hiba: " + e.getMessage());
         }
         return response;
     }
